@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geetest-solver"
-version = "1.0.4"
+version = "1.0.5"
 description = "GeeTest v4 ICON CAPTCHA solver using YOLO + template matching"
 readme = "README.md"
 requires-python = ">=3.8"

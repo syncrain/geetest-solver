@@ -2,6 +2,9 @@
 import sys
 import os
 
+# Suppress YOLO output before import
+os.environ['YOLO_VERBOSE'] = 'False'
+
 # Check dependencies
 try:
     import requests
@@ -23,9 +26,6 @@ def solve_captcha(captcha_id=None, max_attempts=999, interactive=False, proxies=
         captcha_id = os.environ.get('CAPTCHA_ID')
         if not captcha_id:
             raise ValueError("captcha_id is required. Pass it as parameter or set CAPTCHA_ID environment variable.")
-    
-    # Suppress YOLO output
-    os.environ['YOLO_VERBOSE'] = 'False'
     
     try:
         model_path = os.path.join(os.path.dirname(__file__), 'best.pt')

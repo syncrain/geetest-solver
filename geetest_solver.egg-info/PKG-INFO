@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: geetest-solver
-Version: 1.0.4
+Version: 1.0.5
 Summary: GeeTest v4 ICON CAPTCHA solver using YOLO + template matching
 Home-page: https://github.com/syncrain/geetest-solver
 Author: kv
