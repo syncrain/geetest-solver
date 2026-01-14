@@ -1,0 +1,68 @@
+Metadata-Version: 2.4
+Name: geetest-solver
+Version: 1.0.4
+Summary: GeeTest v4 ICON CAPTCHA solver using YOLO + template matching
+Home-page: https://github.com/syncrain/geetest-solver
+Author: kv
+License: MIT
+Project-URL: Homepage, https://github.com/syncrain/geetest-solver.git
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: requests>=2.31.0
+Requires-Dist: ultralytics>=8.0.0
+Requires-Dist: opencv-python>=4.8.0
+Requires-Dist: pillow>=10.0.0
+Requires-Dist: numpy>=1.24.0
+Requires-Dist: pycryptodome>=3.19.0
+Requires-Dist: scipy>=1.11.0
+Requires-Dist: matplotlib>=3.7.0
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-python
+
+# GeeTest ICON Solver
+
+Python library for solving GeeTest v4 ICON CAPTCHA using YOLO object detection and template matching.
+
+## Installation
+
+```bash
+pip install geetest-solver
+```
+
+## Usage
+
+```python
+from captcha_solver import solve_captcha
+
+# Basic usage
+seccode = solve_captcha(captcha_id="your_captcha_id")
+
+# With proxy
+proxies = {
+    'http': 'http://proxy.example.com:8080',
+    'https': 'http://proxy.example.com:8080'
+}
+seccode = solve_captcha(captcha_id="your_captcha_id", proxies=proxies)
+```
+
+## Features
+
+- YOLO-based object detection for ICON captchas
+- Template matching for icon recognition
+- Automatic retry on failure
+- Proxy support
+- High success rate
+
+## Requirements
+
+- Python 3.8+
+- CUDA (optional, for GPU acceleration)
+
+## License
+
+MIT

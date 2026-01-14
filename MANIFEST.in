@@ -1,0 +1,3 @@
+include captcha_solver/best.pt
+include README.md
+include LICENSE

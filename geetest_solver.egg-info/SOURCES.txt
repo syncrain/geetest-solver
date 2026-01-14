@@ -1,0 +1,14 @@
+LICENSE
+MANIFEST.in
+README.md
+pyproject.toml
+setup.py
+geetest_solver/__init__.py
+geetest_solver/best.pt
+geetest_solver/hybrid_solver.py
+geetest_solver/solver.py
+geetest_solver.egg-info/PKG-INFO
+geetest_solver.egg-info/SOURCES.txt
+geetest_solver.egg-info/dependency_links.txt
+geetest_solver.egg-info/requires.txt
+geetest_solver.egg-info/top_level.txt
