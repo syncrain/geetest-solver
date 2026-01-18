@@ -1,8 +1,8 @@
 from setuptools import setup
 
 setup(
-    name="geetest-solver",
-    version="1.0.6",
+    name="geetest_solver",
+    version="1.0.7",
     author="kv",
     description="GeeTest v4 ICON CAPTCHA solver using YOLO + template matching",
     long_description=open("README.md").read(),
