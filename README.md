@@ -1,6 +1,6 @@
-# GeeTest ICON Solver
+# GeeTest Solver
 
-Python library for solving GeeTest v4 ICON CAPTCHA using YOLO object detection and template matching.
+Python library for solving GeeTest v4 captchas (ICON and MATCH/IconCrush types).
 
 ## Installation
 
@@ -11,26 +11,38 @@ pip install geetest-solver
 ## Usage
 
 ```python
-from captcha_solver import solve_captcha
+from geetest_solver import solve_captcha
 
-# Basic usage
-seccode = solve_captcha(captcha_id="your_captcha_id")
+# Icon captcha (default)
+seccode = solve_captcha(captcha_id="<CAPTCHA_ID>", captcha_type="icon")
+
+# Match/IconCrush captcha
+seccode = solve_captcha(captcha_id="<CAPTCHA_ID>", captcha_type="match")
 
 # With proxy
 proxies = {
-    'http': 'http://proxy.example.com:8080',
-    'https': 'http://proxy.example.com:8080'
+    'http': 'http://user:pass@proxy.example.com:8080',
+    'https': 'http://user:pass@proxy.example.com:8080'
 }
-seccode = solve_captcha(captcha_id="your_captcha_id", proxies=proxies)
+seccode = solve_captcha(
+    captcha_id="<CAPTCHA_ID>", 
+    captcha_type="icon",
+    proxies=proxies
+)
 ```
 
 ## Features
 
-- YOLO-based object detection for ICON captchas
-- Template matching for icon recognition
+- **Icon captcha**: YOLO-based object detection + template matching
+- **Match captcha**: Grid-based puzzle solver (swap to match 3)
 - Automatic retry on failure
 - Proxy support
 - High success rate
+
+## Captcha Types
+
+- `icon`: Click icons in sequence (uses YOLO model)
+- `match`: Swap grid items to match 3 in a row (IconCrush)
 
 ## Requirements
 
