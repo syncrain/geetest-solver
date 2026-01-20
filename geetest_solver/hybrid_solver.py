@@ -7,9 +7,23 @@ import os
 import cv2
 import time
 from ultralytics import YOLO
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 from scipy import ndimage
+
+# Lazy load matplotlib only when interactive=True
+_plt = None
+_patches = None
+
+def _load_matplotlib():
+    global _plt, _patches
+    if _plt is None and os.environ.get('ENABLE_MATPLOTLIB', '').lower() in ('1', 'true', 'yes'):
+        try:
+            import matplotlib.pyplot as plt
+            import matplotlib.patches as patches
+            _plt = plt
+            _patches = patches
+        except ImportError:
+            pass
+    return _plt is not None
 
 def generate_w_parameter(captcha_data, coordinates):
     """Generate W parameter"""
@@ -160,7 +174,10 @@ def load_geetest_captcha(captcha_id, proxies=None, verbose=False):
 
 def visualize_detections(grid_image, detections, sequence, attempt_num, target_icons):
     """Show popup with detections, sequence, and target icons"""
-    fig, axes = plt.subplots(2, len(target_icons) + 1, figsize=(15, 10))
+    if not _load_matplotlib():
+        return
+    
+    fig, axes = _plt.subplots(2, len(target_icons) + 1, figsize=(15, 10))
     
     # Top row: Target icons in sequence
     for i, target_icon in enumerate(target_icons):
@@ -177,7 +194,7 @@ def visualize_detections(grid_image, detections, sequence, attempt_num, target_i
         axes[0, -1].axis('off')
     
     # Bottom row: Grid with detections (span across all columns)
-    grid_ax = plt.subplot2grid((2, len(target_icons) + 1), (1, 0), colspan=len(target_icons) + 1)
+    grid_ax = _plt.subplot2grid((2, len(target_icons) + 1), (1, 0), colspan=len(target_icons) + 1)
     
     grid_ax.imshow(grid_image)
     grid_ax.set_title(f"Attempt {attempt_num}: Detection & Sequence", fontsize=16, weight='bold')
@@ -186,7 +203,7 @@ def visualize_detections(grid_image, detections, sequence, attempt_num, target_i
     
     # Show all detections as small circles
     for i, (x, y, method) in enumerate(detections):
-        circle = patches.Circle((x, y), 8, color=colors[i % len(colors)], 
+        circle = _patches.Circle((x, y), 8, color=colors[i % len(colors)], 
                               fill=False, linewidth=2, alpha=0.7)
         grid_ax.add_patch(circle)
         grid_ax.text(x, y-15, f"{method}", color=colors[i % len(colors)], 
@@ -198,7 +215,7 @@ def visualize_detections(grid_image, detections, sequence, attempt_num, target_i
         img_y = int(y / 49)
         
         # Big circle for final selection
-        circle = patches.Circle((img_x, img_y), 25, color='yellow', 
+        circle = _patches.Circle((img_x, img_y), 25, color='yellow', 
                               fill=False, linewidth=6)
         grid_ax.add_patch(circle)
         grid_ax.text(img_x, img_y, str(i+1), color='black', 
@@ -209,11 +226,11 @@ def visualize_detections(grid_image, detections, sequence, attempt_num, target_i
             print(f"  Target {i+1}: Image({img_x},{img_y}) -> Scaled({x},{y})")
     
     grid_ax.axis('off')
-    plt.tight_layout()
-    plt.show(block=False)
+    _plt.tight_layout()
+    _plt.show(block=False)
     
     input(f"Press Enter to submit attempt {attempt_num}...")
-    plt.close()
+    _plt.close()
 
 def hybrid_solve(captcha_data, model, attempt_num=1, interactive=True, verbose=False):
     """Hybrid solver: YOLO + ddddocr + template matching with preprocessing"""
@@ -447,10 +464,13 @@ def hybrid_solve(captcha_data, model, attempt_num=1, interactive=True, verbose=F
         match_scores = []
         
         # Create visualization figure
-        import matplotlib.pyplot as plt
-        fig, axes = plt.subplots(target_count, len(grid_yolo_detections) + 1, figsize=(15, target_count * 3))
-        if target_count == 1:
-            axes = axes.reshape(1, -1)
+        if _load_matplotlib():
+            fig, axes = _plt.subplots(target_count, len(grid_yolo_detections) + 1, figsize=(15, target_count * 3))
+            if target_count == 1:
+                axes = axes.reshape(1, -1)
+        else:
+            fig = None
+            axes = None
         
         # First pass: collect all scores
         all_scores = []  # (target_idx, det_idx, score)
@@ -459,9 +479,10 @@ def hybrid_solve(captcha_data, model, attempt_num=1, interactive=True, verbose=F
             target_cv = target_icons_cv[target_idx]
             target_gray = cv2.cvtColor(target_cv, cv2.COLOR_BGR2GRAY)
             
-            axes[target_idx, 0].imshow(target_gray, cmap='gray')
-            axes[target_idx, 0].set_title(f'Target {target_idx+1}', fontsize=14, weight='bold')
-            axes[target_idx, 0].axis('off')
+            if _plt is not None and axes is not None:
+                axes[target_idx, 0].imshow(target_gray, cmap='gray')
+                axes[target_idx, 0].set_title(f'Target {target_idx+1}', fontsize=14, weight='bold')
+                axes[target_idx, 0].axis('off')
             
             for det_idx, (grid_x, grid_y, conf) in enumerate(grid_yolo_detections):
                 score = feature_match_score(target_cv, grid_cv, grid_x, grid_y)
@@ -475,9 +496,10 @@ def hybrid_solve(captcha_data, model, attempt_num=1, interactive=True, verbose=F
                 region = grid_cv[y1:y2, x1:x2]
                 region_gray = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY)
                 
-                axes[target_idx, det_idx + 1].imshow(region_gray, cmap='gray')
-                axes[target_idx, det_idx + 1].set_title(f'Det {det_idx}\nSSIM={score:.3f}', fontsize=10)
-                axes[target_idx, det_idx + 1].axis('off')
+                if _plt is not None and axes is not None:
+                    axes[target_idx, det_idx + 1].imshow(region_gray, cmap='gray')
+                    axes[target_idx, det_idx + 1].set_title(f'Det {det_idx}\nSSIM={score:.3f}', fontsize=10)
+                    axes[target_idx, det_idx + 1].axis('off')
                 
                 if verbose:
                     print(f"  Target {target_idx+1} vs Detection {det_idx}: score={score:.3f}")
@@ -512,11 +534,12 @@ def hybrid_solve(captcha_data, model, attempt_num=1, interactive=True, verbose=F
                             print(f"  → Target {target_idx+1}: assigned remaining detection {det_idx}")
                         break
         
-        plt.tight_layout()
-        if interactive:
-            plt.show(block=False)
+        if _plt: _plt.tight_layout()
+        if interactive and _load_matplotlib():
+            _plt.show(block=False)
             input("Press Enter to continue...")
-        plt.close()
+        if _plt:
+            _plt.close()
         
         # Combine all detections for visualization
         all_detections = [(x, y, f"YOLO:{c:.2f}") for x, y, c in grid_yolo_detections]
