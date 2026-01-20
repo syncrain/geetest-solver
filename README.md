@@ -71,6 +71,39 @@ async def solve_captcha_endpoint(captcha_id: str):
     return {"seccode": result}
 ```
 
+### Model Reuse (for multiple solves)
+
+```python
+from geetest_solver.solver import get_model, solve_captcha
+
+# Load model once
+model = get_model()
+
+# Solve 100 captchas with same model (saves CPU/memory)
+for i in range(100):
+    result = solve_captcha(
+        captcha_id="<CAPTCHA_ID>",
+        model=model  # Reuse model
+    )
+```
+
+### Async with Model Reuse
+
+```python
+from geetest_solver.solver import get_model
+from geetest_solver.async_wrapper import solve_captcha_async
+
+# Load model once
+model = get_model()
+
+# Solve multiple captchas
+for i in range(100):
+    result = await solve_captcha_async(
+        captcha_id="<CAPTCHA_ID>",
+        model=model
+    )
+```
+
 ## Features
 
 - **Icon captcha**: YOLO-based object detection + template matching
@@ -87,6 +120,24 @@ async def solve_captcha_endpoint(captcha_id: str):
 - `match`: Swap grid items to match 3 in a row (IconCrush)
 
 ## Configuration
+
+### Model Management
+
+The YOLO model is cached in memory after first load. To manually free memory:
+
+```python
+from geetest_solver.solver import get_model, unload_model
+
+# Load model
+model = get_model()
+
+# Use model for solving...
+
+# Free memory when done
+unload_model()
+```
+
+**Note**: In FastAPI/long-running servers, the model stays loaded for the entire process lifetime (recommended for performance).
 
 ### Disable Matplotlib (default)
 

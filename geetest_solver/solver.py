@@ -18,7 +18,30 @@ sys.path.insert(0, os.path.dirname(__file__))
 from hybrid_solver import load_geetest_captcha, hybrid_solve, submit_verify_request, generate_w_parameter
 from iconcrush_solver import iconcrush_solve_all, generate_w_parameter_iconcrush
 
-def solve_captcha(captcha_id=None, captcha_type="icon", max_attempts=999, interactive=False, proxies=None, verbose=False):
+# Global model cache
+_model_cache = None
+
+def get_model():
+    """Get or load YOLO model (cached)"""
+    global _model_cache
+    if _model_cache is None:
+        try:
+            model_path = os.path.join(os.path.dirname(__file__), 'best.pt')
+            _model_cache = YOLO(model_path, verbose=False)
+        except:
+            _model_cache = YOLO('yolov8n.pt', verbose=False)
+    return _model_cache
+
+def unload_model():
+    """Manually unload the cached model to free memory"""
+    global _model_cache
+    if _model_cache is not None:
+        del _model_cache
+        _model_cache = None
+        import gc
+        gc.collect()
+
+def solve_captcha(captcha_id=None, captcha_type="icon", max_attempts=999, interactive=False, proxies=None, verbose=False, model=None):
     """Solve captcha with retry until success
     
     Args:
@@ -28,6 +51,7 @@ def solve_captcha(captcha_id=None, captcha_type="icon", max_attempts=999, intera
         interactive: Show visualization popups
         proxies: Proxy dict {'http': 'url', 'https': 'url'}
         verbose: Print debug info
+        model: Pre-loaded YOLO model (optional, for reuse)
     
     Returns:
         seccode dict on success, None on failure
@@ -38,11 +62,9 @@ def solve_captcha(captcha_id=None, captcha_type="icon", max_attempts=999, intera
             raise ValueError("captcha_id is required")
     
     if captcha_type == "icon":
-        try:
-            model_path = os.path.join(os.path.dirname(__file__), 'best.pt')
-            model = YOLO(model_path, verbose=False)
-        except:
-            model = YOLO('yolov8n.pt', verbose=False)
+        # Use provided model or get cached model
+        if model is None:
+            model = get_model()
         
         while True:
             captcha_data_raw = load_geetest_captcha(captcha_id, proxies=proxies, verbose=verbose)
